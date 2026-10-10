@@ -11,8 +11,15 @@ import RemoveBackground from "./pages/RemoveBackground";
 import ReviewResume from "./pages/ReviewResume";
 import GenerateImages from "./pages/GenerateImages";
 import RemoveObject from "./pages/RemoveObject";
+import { useAuth } from "@clerk/clerk-react";
+import { useEffect } from "react";
 
 const App = () => {
+  const {getToken}=useAuth();
+  useEffect(()=>{
+      getToken().then((token)=>console.log(token));
+  },[])
+
   return (
     <div>
       <Routes>
