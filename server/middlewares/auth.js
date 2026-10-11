@@ -20,26 +20,24 @@ export const auth = async (req, res, next) => {
 
     req.plan = hasPremiumPlan ? "premium" : "free";
 
-    // Only initialize free usage for free-plan users.
-    if (hasPremiumPlan) {
-      req.free_usage = Number(
-        user.privateMetadata.free_usage ?? 0
-      );
-    } else {
-      const usage = Number(
-        user.privateMetadata.free_usage ?? 0
-      );
-
-      req.free_usage = usage;
-    }
+    // Get free usage from Clerk metadata
+    req.free_usage = Number(
+      user.privateMetadata?.free_usage ?? 0
+    );
 
     next();
   } catch (error) {
-    console.error("Auth middleware error:", error);
+    console.error("Auth middleware error:", {
+      message: error.message,
+      code: error.code,
+      status: error.status,
+      errors: error.errors,
+      cause: error.cause?.message,
+    });
 
     return res.status(500).json({
       success: false,
-      message: "Authentication failed.",
+      message: "Authentication failed. Please try again.",
     });
   }
 };

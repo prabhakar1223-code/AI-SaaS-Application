@@ -1,14 +1,39 @@
+
 import React, { useEffect, useState } from 'react'
-import { dummyCreationData } from '../assets/assets'
 import { Gem, Sparkles } from 'lucide-react'
-import { Protect } from '@clerk/clerk-react'
+import { Protect, useAuth } from '@clerk/clerk-react'
+import axios from 'axios'
 import CreationItem from '../components/CreationItem'
+
+axios.defaults.baseURL = import.meta.env.VITE_BASE_URL
 
 const Dashboard = () => {
   const [creations, setCreations] = useState([])
+  const [loading, setLoading] = useState(true)
+  const { getToken } = useAuth()
 
   const getDashboardData = async () => {
-    setCreations(dummyCreationData)
+    try {
+      setLoading(true)
+
+      const token = await getToken()
+
+      const { data } = await axios.get('/api/user/get-user-creations', {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      console.log('Dashboard creations:', data)
+
+      if (data.success) {
+        setCreations(data.creations || [])
+      }
+    } catch (error) {
+      console.error('Dashboard fetch error:', error.response?.data || error.message)
+    } finally {
+      setLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -19,7 +44,8 @@ const Dashboard = () => {
     <div className='h-full overflow-y-scroll p-6'>
 
       <div className='flex justify-start gap-4 flex-wrap'>
-      {/* total creation card */}
+
+        {/* Total creation card */}
         <div className='flex justify-between items-center w-72 p-4 px-6 bg-white rounded-xl border border-gray-200'>
 
           <div className='text-slate-600'>
@@ -35,8 +61,8 @@ const Dashboard = () => {
 
         </div>
 
-        {/* Acitve plan card */}
-         <div className='flex justify-between items-center w-72 p-4 px-6 bg-white rounded-xl border border-gray-200'>
+        {/* Active plan card */}
+        <div className='flex justify-between items-center w-72 p-4 px-6 bg-white rounded-xl border border-gray-200'>
 
           <div className='text-slate-600'>
             <p className='text-sm'>Active Plan</p>
@@ -52,14 +78,21 @@ const Dashboard = () => {
           </div>
 
         </div>
-      </div>
 
+      </div>
 
       <div className='space-y-3'>
         <p className='mt-6 mb-4'>Recent Creations</p>
-        {
-          creations.map((item)=><CreationItem key={item.id} item={item}/>)
-        }
+
+        {loading ? (
+          <p className='text-gray-500'>Loading your creations...</p>
+        ) : creations.length > 0 ? (
+          creations.map((item) => (
+            <CreationItem key={item.id} item={item} />
+          ))
+        ) : (
+          <p className='text-gray-500'>No creations found.</p>
+        )}
       </div>
 
     </div>
