@@ -501,6 +501,8 @@ import { clerkClient } from '@clerk/express';
 import axios from 'axios';
 import { v2 as cloudinary } from 'cloudinary';
 import fs from 'fs';
+
+import { CanvasFactory } from 'pdf-parse/worker';
 import { PDFParse } from 'pdf-parse';
 import FormData from 'form-data';
 const AI = new OpenAI({
@@ -1020,8 +1022,9 @@ export const resumeReview = async (req, res) => {
     const dataBuffer = fs.readFileSync(resume.path);
 
     parser = new PDFParse({
-      data: dataBuffer,
-    });
+    data: new Uint8Array(dataBuffer),
+    CanvasFactory,
+});
 
     const pdfData = await parser.getText();
 
